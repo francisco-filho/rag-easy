@@ -15,6 +15,7 @@ class Row(BaseModel):
     body: str
     metadata: dict
 
+# TODO: Make this a class in the future
 def connect_to_db():
     try:
         conn = psycopg2.connect(

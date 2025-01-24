@@ -14,6 +14,7 @@ class EmbeddingRequest(BaseModel):
 
 class SearchRequest(BaseModel):
     query: str
+    limit: int = 3
 
 @app.post("/embeddings")
 async def embeddings(req: EmbeddingRequest):
@@ -23,6 +24,14 @@ async def embeddings(req: EmbeddingRequest):
     return {"embeddings": embeddings, "length": len(embeddings)}
 
 @app.post("/search")
-def search(query: SearchRequest):
-    resp = vector_query(embedder.embed(query.query), limit=3)
+def search(sr: SearchRequest):
+    resp = vector_query(embedder.embed(sr.query), limit=3)
     return resp
+
+@app.post("/answer")
+def answer(req: SearchRequest):
+    texts = vector_query(embedder.embed(req.text), limit=req.limit)
+    # mount a request with the top `limit` results`
+    # ask to a LLM
+    # respond to the user
+    return {"response": texts}
