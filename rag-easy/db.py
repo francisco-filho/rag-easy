@@ -2,11 +2,18 @@ import os
 import json
 import psycopg2
 from dotenv import load_dotenv
+from pydantic import BaseModel
 
 load_dotenv()
 
 dbname=os.getenv('DB_NAME')
 collection="public.myfirstcol"
+
+class Row(BaseModel):
+    id: int
+    category: str
+    body: str
+    metadata: dict
 
 def connect_to_db():
     try:
@@ -44,7 +51,7 @@ def persist_embedding(data: dict):
         cur.close()
         conn.close()
 
-def vector_query(embedding: list, category=None, limit=5):
+def vector_query(embedding: list, category=None, limit=5) -> list[Row]:
     conn = connect_to_db()
     if not conn:
         raise Exception("Could not connect to the database")
@@ -64,7 +71,7 @@ def vector_query(embedding: list, category=None, limit=5):
                 """
             cur.execute(query, (str(embedding), limit))
 
-        return cur.fetchall()
+        return [Row(id=r[0], category=r[1], body=r[2], metadata=r[3]) for r in cur.fetchall()]
     except psycopg2.Error as e:
         print(f"Failed to query table: {e}")
     finally:
