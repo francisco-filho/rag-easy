@@ -38,17 +38,18 @@ def search(sr: SearchRequest):
 def answer(req: SearchRequest):
     texts = vector_query(embedder.embed(req.query), limit=req.limit)
     info = "\n\n".join([t.body for t in texts])
+    logger.info(f"Context retrieved:\n{info}")
 
     prompt = f"""
-    Based on the following information:
+    Answer the following question:
+    {req.query}
+
+    Evaluate if The following information can help you respond:
     <context>
     {info}
     </context>
-
-    Answer the following question:
-    {req.query}
     """
-    llm = LLMOllama(model="deepseek-r1:14b")
+    llm = LLMOllama(model="deepseek-r1:8b")
 
     logger.info(f"Prompt: {prompt}")
     response = llm.chat(prompt)
