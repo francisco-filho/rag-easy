@@ -41,7 +41,9 @@ def answer(req: SearchRequest):
 
     prompt = f"""
     Based on the following information:
+    <context>
     {info}
+    </context>
 
     Answer the following question:
     {req.query}
