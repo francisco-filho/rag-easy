@@ -1,5 +1,8 @@
 import db
+import click
 from tqdm.rich import tqdm
+from indexer import PdfLoader, PageChunker
+from embedder import OllamaEmbedder
 
 emb_example = {
     "category": "example_category",
@@ -11,8 +14,30 @@ emb_example = {
 def embed(embedding_data):
     db.persist_embedding(embedding_data)
 
+@click.command()
+@click.option('--file', required=True, help='Path to the PDF file.')
+def main(file: str):
+    loader = PdfLoader()
+    doc = loader.load(file, first_page=0, last_page=-1)
+    page_chunker = PageChunker()
+    chunks = page_chunker.chunk(doc.pages, metadata=doc.metadata)
+    embedder = OllamaEmbedder()
+
+    for c in tqdm(chunks, desc="Embedding"):
+        embedding = embedder.embed(c.text)
+        data = {
+            "category": "book",
+            "metadata": c.metadata,
+            "body": {"text": c.text},
+            "embedding": embedding
+        }
+        embed(data)
+
 
 if __name__ == "__main__":
+    main()
+
+    """
     from indexer import PdfLoader, PageChunker
     from embedder import OllamaEmbedder
 
@@ -33,3 +58,4 @@ if __name__ == "__main__":
             "embedding": embedding
         }
         embed(data)
+        """

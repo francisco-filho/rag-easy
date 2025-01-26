@@ -12,7 +12,7 @@ class Page(BaseModel):
         return f"Page {self.index}:\n{content}"
 
 class Document(BaseModel):
-    title: str
+    title: Union[str, None]
     author: str
     date: datetime
     subject: Union[str, None] = None
