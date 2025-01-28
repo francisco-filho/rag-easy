@@ -15,7 +15,7 @@ create table $COL_NAME (
 	category text,
 	metadata jsonb,
 	body text,
-	embedding vector(1024),
+	embedding vector(4096),
 	update_at timestamp default now(),
 	primary key (id)
 );
