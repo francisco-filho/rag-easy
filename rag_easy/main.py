@@ -1,22 +1,28 @@
 import db
 import click
+import warnings
 from tqdm.rich import tqdm
+from tqdm import TqdmExperimentalWarning
 from indexer import PdfLoader, PageChunker
 from embedder import OllamaEmbedder
+
+warnings.filterwarnings('ignore', category=TqdmExperimentalWarning)
 
 emb_example = {
     "category": "example_category",
     "metadata": {"key1": "value1", "key2": "value2"},
     "body": {"name": "jonh", "age": 30},
-    "embedding": [0.1323432] * 1024
+    "embedding": [0.1323432] * 4096
 }
 
 def embed(embedding_data):
     db.persist_embedding(embedding_data)
 
+# todo: add options for aditional metadata
 @click.command()
 @click.option('--file', required=True, help='Path to the PDF file.')
-def main(file: str):
+@click.option('--category', required=True, help='Category of the content')
+def main(file: str, category: str):
     loader = PdfLoader()
     doc = loader.load(file, first_page=0, last_page=-1)
     page_chunker = PageChunker()
@@ -26,9 +32,9 @@ def main(file: str):
     for c in tqdm(chunks, desc="Embedding"):
         embedding = embedder.embed(c.text)
         data = {
-            "category": "book",
+            "category": category,
             "metadata": c.metadata,
-            "body": {"text": c.text},
+            "body": c.text,
             "embedding": embedding
         }
         embed(data)

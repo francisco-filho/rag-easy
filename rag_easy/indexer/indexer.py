@@ -1,4 +1,4 @@
-from tqdm import tqdm
+from tqdm.rich import tqdm
 from pypdf import PdfReader
 from pydantic import BaseModel
 from pathlib import Path
@@ -7,8 +7,10 @@ from .models import Page, Document, Chunk
 class Chunker(BaseModel):
     pass
 
+# todo: RegexChunker, WordChunker
+
 class PageChunker(Chunker):
-    def chunk(self, pages: list[Page], metadata={},overlap: int = 2) -> list[Chunk]:
+    def chunk(self, pages: list[Page], metadata={},overlap: int = 1) -> list[Chunk]:
         result = []
         c = 0
         while c < len(pages):

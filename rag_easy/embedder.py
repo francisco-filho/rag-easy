@@ -2,7 +2,7 @@ import ollama
 from ollama import EmbedResponse
 from pydantic import BaseModel
 
-default_model = 'bge-m3:latest'
+default_model = 'deepseek-r1:8b'
 
 class EmbedProvider(BaseModel):
     def embed(self, input_text: str, model=default_model, **kwargs) -> list:

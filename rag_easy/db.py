@@ -41,7 +41,7 @@ def persist_embedding(data: dict):
             INSERT INTO {collection} (category, metadata, body, embedding) 
             VALUES (%s, %s, %s, %s);
             """
-        cur.execute(query, (data['category'], json.dumps(data['metadata']), json.dumps(data['body']), data['embedding']))
+        cur.execute(query, (data['category'], json.dumps(data['metadata']), data['body'], data['embedding']))
 
         conn.commit()
 
