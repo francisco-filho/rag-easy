@@ -14,7 +14,7 @@ class Page(BaseModel):
 class Document(BaseModel):
     title: Union[str, None]
     author: str
-    date: datetime
+    date: Union[datetime, None]
     subject: Union[str, None] = None
     pages: list[Page]
 
@@ -26,7 +26,7 @@ class Document(BaseModel):
         return {
             "title": self.title,
             "author": self.author,
-            "date": self.date.strftime("%Y-%m-%d"),
+            "date": self.date.strftime("%Y-%m-%d") if self.date else None,
             "subject": self.subject
         }
 

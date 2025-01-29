@@ -1,1 +1,1 @@
-from .indexer import PdfLoader, PageChunker
+from .indexer import PdfLoader, PageChunker, DirectoryFileScanner

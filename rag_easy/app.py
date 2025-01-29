@@ -49,7 +49,7 @@ def answer(req: SearchRequest):
     {info}
     </context>
     """
-    llm = LLMOllama(model="deepseek-r1:8b")
+    llm = LLMOllama(model="deepseek-r1:14b")
 
     logger.info(f"Prompt: {prompt}")
     response = llm.chat(prompt)

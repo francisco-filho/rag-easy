@@ -1,3 +1,4 @@
+from typing import Generator
 from tqdm.rich import tqdm
 from pypdf import PdfReader
 from pydantic import BaseModel
@@ -8,6 +9,7 @@ class Chunker(BaseModel):
     pass
 
 # todo: RegexChunker, WordChunker
+
 
 class PageChunker(Chunker):
     def chunk(self, pages: list[Page], metadata={},overlap: int = 1) -> list[Chunk]:
@@ -30,6 +32,28 @@ class PageChunker(Chunker):
 class Loader(BaseModel):
     def load(self, *args, **kwargs):
         raise NotImplementedError
+
+class DirectoryFileScanner():
+    def scan(self, fp: str, extension=['.md', '.txt']) -> Generator[Path, None, None]:
+        for f in Path(fp).glob("**/*"):
+            if f.is_file() and f.suffix.lower() in extension:
+                yield f
+        return None
+
+class TextLoader(Loader):
+    def load(self, fp: str) -> Document:
+        with open(fp, 'r', encoding='utf-8') as f:
+            return Document(
+                title=f.name,
+                author="Unknown",
+                pages=[Page(index=0, content=f.read())],
+                date=None,
+                metadata={
+                    "root_dir": fp.parent,
+                    "filename": f.name,
+                    "extension": "",
+                    "path": str(fp),
+                })
 
 class PdfLoader(Loader):
     def load(self, fp: str, first_page=0, last_page=-1, remove_footer=True) -> Document:
@@ -60,3 +84,4 @@ class PdfLoader(Loader):
             date=doc.metadata.creation_date,
             pages=pages
         )
+
