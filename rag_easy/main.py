@@ -32,7 +32,7 @@ def index_directory(directory: str, category: str):
         loader = TextLoader()
         c = loader.load(file)
         embedder = OllamaEmbedder()
-        content = c.pages[0].content
+        content = c.content
         embedding = embedder.embed(content)
         data = {
             "category": category,

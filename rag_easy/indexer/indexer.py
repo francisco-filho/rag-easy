@@ -3,7 +3,7 @@ from tqdm.rich import tqdm
 from pypdf import PdfReader
 from pydantic import BaseModel
 from pathlib import Path
-from .models import Page, Document, Chunk
+from .models import Page, PdfDocument, Chunk, TextDocument
 
 class Chunker(BaseModel):
     pass
@@ -41,27 +41,26 @@ class DirectoryFileScanner():
         return None
 
 class TextLoader(Loader):
-    def load(self, fp: str) -> Document:
+    def load(self, fp: str) -> TextDocument:
         with open(fp, 'r', encoding='utf-8') as f:
-            return Document(
+            return TextDocument(
                 title=f.name,
                 author="Unknown",
-                pages=[Page(index=0, content=f.read())],
-                date=None,
+                content=f.read(),
                 metadata={
-                    "root_dir": fp.parent,
+                    "root_dir": str(fp.parent),
                     "filename": f.name,
                     "extension": "",
                     "path": str(fp),
                 })
 
 class PdfLoader(Loader):
-    def load(self, fp: str, first_page=0, last_page=-1, remove_footer=True) -> Document:
+    def load(self, fp: str, first_page=0, last_page=-1, remove_footer=True) -> PdfDocument:
         if not Path(fp).exists():
             raise FileNotFoundError(f"File {fp} does not exist")
         return self._read_pdf(fp, first_page, last_page, remove_footer)
 
-    def _read_pdf(self, file, first_page=24, last_page=-1, remove_footer=True) -> Document:
+    def _read_pdf(self, file, first_page=24, last_page=-1, remove_footer=True) -> PdfDocument:
         def visitor_fn(text, cm, tm, font_dict, font_size):
             y = cm[5]
             if 150 < y < 500 and text:
@@ -77,11 +76,10 @@ class PdfLoader(Loader):
             else:
                 pages.append(Page(index=p.page_number, content=p.extract_text().strip()))
 
-        return Document(
+        return PdfDocument(
             title=doc.metadata.title,
             author=doc.metadata.author,
             subject=doc.metadata.subject,
             date=doc.metadata.creation_date,
             pages=pages
         )
-
