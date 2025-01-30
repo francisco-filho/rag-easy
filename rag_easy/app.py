@@ -4,7 +4,7 @@ from typing import Union
 from fastapi import FastAPI
 from rag_easy.embedder import OllamaEmbedder
 from rag_easy.db import persist_embedding, vector_query
-from rag_easy.llm import LLMOllama
+from rag_easy.llm import LLMOllamaWithHistory
 
 logger = logging.getLogger(__name__)
 logger.setLevel(logging.INFO)
@@ -49,7 +49,7 @@ def answer(req: SearchRequest):
     {info}
     </context>
     """
-    llm = LLMOllama(model="deepseek-r1:14b")
+    llm = LLMOllamaWithHistory(model="deepseek-r1:14b")
 
     logger.info(f"Prompt: {prompt}")
     response = llm.chat(prompt)

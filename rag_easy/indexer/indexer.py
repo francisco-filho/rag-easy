@@ -10,7 +10,6 @@ class Chunker(BaseModel):
 
 # todo: RegexChunker, WordChunker
 
-
 class PageChunker(Chunker):
     def chunk(self, pages: list[Page], metadata={},overlap: int = 1) -> list[Chunk]:
         result = []
