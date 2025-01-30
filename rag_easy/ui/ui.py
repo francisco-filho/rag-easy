@@ -1,10 +1,14 @@
+import os
 import re
 import json
 import gradio as gr
 from gradio import ChatMessage
 from rag_easy.llm import LLMOpenAI
 
-llm = LLMOpenAI(model="deepseek-r1:8b")
+from dotenv import load_dotenv
+load_dotenv()
+
+llm = LLMOpenAI(model=os.getenv("DEFAULT_MODEL"))
 
 def fix_markdown_linebreak(s):
     return re.sub("\n", "<br/>", s, re.DOTALL)

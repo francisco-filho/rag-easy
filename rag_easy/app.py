@@ -2,6 +2,7 @@ import logging
 from pydantic import BaseModel
 from typing import Union
 from fastapi import FastAPI
+from dotenv import load_dotenv
 from rag_easy.embedder import OllamaEmbedder
 from rag_easy.db import persist_embedding, vector_query
 from rag_easy.llm import LLMOllamaWithHistory
@@ -9,6 +10,8 @@ from rag_easy.llm import LLMOllamaWithHistory
 logger = logging.getLogger(__name__)
 logger.setLevel(logging.INFO)
 logger.addHandler(logging.StreamHandler())
+
+load_dotenv()
 
 app = FastAPI()
 embedder = OllamaEmbedder()

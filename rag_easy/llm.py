@@ -1,13 +1,14 @@
+import os
 import re
 import ollama
 from pydantic import BaseModel
 from openai import OpenAI
 from typing import Union
 
-default_model = "deepseek-r1:8b"
+DEFAULT_MODEL = os.getenv("DEFAULT_MODEL")
 
 class LLM(BaseModel):
-    model: str | None = default_model
+    model: str | None = DEFAULT_MODEL
     system: str | None = None 
 
 class LLMOpenAI(LLM):
@@ -31,11 +32,11 @@ class LLMOpenAI(LLM):
     
 
 class LLMWithHistory(BaseModel):
-    model: str | None = default_model
+    model: str | None = DEFAULT_MODEL
     system: str | None = None 
     messages: list[dict] = []
 
-    def __init__(self, model=default_model, system_prompt=None):
+    def __init__(self, model=DEFAULT_MODEL, system_prompt=None):
         super().__init__(model=model, system_prompt=system_prompt)
         if system_prompt:
             self.messages.append({"role": "system", "content": system_prompt})
@@ -49,7 +50,7 @@ class LLMWithHistory(BaseModel):
 
 
 class LLMOllamaWithHistory(LLMWithHistory):
-    def __init__(self, model=default_model, system_prompt=None):
+    def __init__(self, model=DEFAULT_MODEL, system_prompt=None):
         super().__init__(model=model, system_prompt=system_prompt)
         if system_prompt:
             self.messages.append({"role": "system", "content": system_prompt})
