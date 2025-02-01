@@ -14,10 +14,10 @@ class Page(BaseModel):
 class Document(BaseModel):
     title: Union[str, None]
     author: str
-    metadata: dict
 
 class TextDocument(Document):
     content: str
+    metadata: dict
 
     def __init__(self, title: Union[str, None] = None, author: str = "", content: str = "", metadata: dict = {}):
         super().__init__(title=title, author=author, metadata=metadata, content=content)
@@ -27,17 +27,13 @@ class PdfDocument(Document):
     subject: Union[str, None] = None
     pages: list[Page]
 
-    def __init__(self, title: Union[str, None] = None, author: str = "", date: Union[datetime, None] = None, subject: Union[str, None] = None):
-        super().__init__(title=title, author=author)
-        self.date = date
-        self.subject = subject
-        self.pages = []
+    def __init__(self, title: Union[str, None] = None, author: str = "", date: Union[datetime, None] = None, subject: Union[str, None] = None, pages=[]):
+        super().__init__(title=title, author=author, date=date, subject=subject, pages=pages)
 
     def __str__(self):
         return f"Document(title={self.title}, author={self.author}, date={self.date}, subject={self.subject})"
 
-    @property
-    def metadata(self) -> dict:
+    def metadata(self):
         return {
             "title": self.title,
             "author": self.author,

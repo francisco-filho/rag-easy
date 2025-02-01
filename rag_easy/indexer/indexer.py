@@ -21,7 +21,7 @@ class PageChunker(Chunker):
                     text = text + pages[c].content
                 else:
                     text = text + pages[c+i].content
-            pm = metadata.copy()
+            pm = dict(metadata)
             pm["page"] = pages[c].index
             result.append(Chunk(index=str(pages[c].index), text=text, metadata=pm))
             c = c + 1
@@ -38,6 +38,10 @@ class DirectoryFileScanner():
             if f.is_file() and f.suffix.lower() in extension:
                 yield f
         return None
+
+    def listFiles(self, fp: str, extension=['.md', '.txt']) -> Path:
+        return [f for f in self.scan(fp, extension)]
+
 
 class TextLoader(Loader):
     def load(self, fp: str) -> TextDocument:

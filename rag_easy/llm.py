@@ -21,6 +21,8 @@ class LLMOpenAI(LLM):
         self.api = OpenAI(base_url=base_url, api_key=api_key)
 
     def chat(self, message, history=[], stream=False):
+        if self.system:
+            history.append(dict(role='system', content=self.system))
         history.append(dict(role='user', content=message))
 
         response = self.api.chat.completions.create(
@@ -28,6 +30,13 @@ class LLMOpenAI(LLM):
             messages=history,
         )
         return response.choices[0].message.content
+
+    def embed(self, input):
+        embeddings = self.api.embeddings.create(
+            model=self.model,
+            input=input,
+        )
+        return embeddings
 
     
 
