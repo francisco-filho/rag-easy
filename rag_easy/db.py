@@ -78,3 +78,18 @@ def vector_query(embedding: list, category=None, limit=5) -> list[Row]:
     finally:
         cur.close()
         conn.close()
+
+def clear_index(collection: str):
+    conn = connect_to_db()
+    if not conn:
+        raise Exception("Could not connect to the database")
+    cur = conn.cursor()
+    try:
+        query = f"TRUNCATE {collection} RESTART IDENTITY"
+        cur.execute(query)
+        conn.commit()
+    except psycopg2.Error as e:
+        print(f"Failed to clear collection: {e}")
+    finally:
+        cur.close()
+        conn.close()
