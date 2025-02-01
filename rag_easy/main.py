@@ -6,15 +6,11 @@ from tqdm import TqdmExperimentalWarning
 from indexer import PdfLoader, PageChunker, DirectoryFileScanner
 from embedder import OllamaEmbedder
 from rag_easy.indexer.indexer import TextLoader
+from dotenv import load_dotenv
+
+load_dotenv()
 
 warnings.filterwarnings('ignore', category=TqdmExperimentalWarning)
-
-emb_example = {
-    "category": "example_category",
-    "metadata": {"key1": "value1", "key2": "value2"},
-    "body": {"name": "jonh", "age": 30},
-    "embedding": [0.1323432] * 4096
-}
 
 def embed(embedding_data):
     db.persist_embedding(embedding_data)
@@ -23,12 +19,28 @@ def embed(embedding_data):
 def indexer():
     pass
 
+def abort_command(ctx, param, value):
+    if not value:
+        ctx.abort()
+
+@indexer.command()
+@click.option('--collection', required=True, help='Name of the collection to remove from index.')
+@click.option('--yes', is_flag=True, 
+              expose_value=False, 
+              prompt="Delete the entire collection?",
+              callback=abort_command)
+def clear(collection: str):
+    db.clear_index(collection)
+    print(f"Collection {collection} is now EMPTY")
+
+
 @indexer.command()
 @click.option('--directory', required=True, help='Path to the directory containing PDF files.')
 @click.option('--category', required=True, help='Category of the content')
 def index_directory(directory: str, category: str):
     file_scanner = DirectoryFileScanner()
-    for file in tqdm(file_scanner.scan(directory)):
+    #for file in tqdm(file_scanner.scan(directory)):
+    for file in tqdm(file_scanner.listFiles(directory)):
         loader = TextLoader()
         c = loader.load(file)
         embedder = OllamaEmbedder()
@@ -50,10 +62,12 @@ def index_file(file: str, category: str):
     loader = PdfLoader()
     doc = loader.load(file, first_page=0, last_page=-1)
     page_chunker = PageChunker()
-    chunks = page_chunker.chunk(doc.pages, metadata=doc.metadata)
+    chunks = page_chunker.chunk(doc.pages, metadata=doc.metadata())
     embedder = OllamaEmbedder()
 
     for c in tqdm(chunks, desc="Embedding"):
+        if not c.text:
+            continue
         embedding = embedder.embed(c.text)
         data = {
             "category": category,
@@ -87,26 +101,3 @@ def main(file: str, category: str):
 
 if __name__ == "__main__":
     indexer()
-
-    """
-    from indexer import PdfLoader, PageChunker
-    from embedder import OllamaEmbedder
-
-    file = '/home/ff/Downloads/books/aigen.pdf'
-    loader = PdfLoader()
-    doc = loader.load(file, first_page=0, last_page=-1)
-
-    page_chunker = PageChunker()
-    chunks = page_chunker.chunk(doc.pages, metadata=doc.metadata)
-    embedder = OllamaEmbedder()
-
-    for c in tqdm(chunks, desc="Embedding"):
-        embedding = embedder.embed(c.text)
-        data = {
-            "category": "book",
-            "metadata": doc.metadata,
-            "body": c.text,
-            "embedding": embedding
-        }
-        embed(data)
-        """

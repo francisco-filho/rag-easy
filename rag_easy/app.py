@@ -1,11 +1,12 @@
+import os
 import logging
-from pydantic import BaseModel
-from typing import Union
 from fastapi import FastAPI
 from dotenv import load_dotenv
 from rag_easy.embedder import OllamaEmbedder
+from rag_easy.retriever import SearchRequest, EmbeddingRequest
 from rag_easy.db import persist_embedding, vector_query
-from rag_easy.llm import LLMOllamaWithHistory
+from rag_easy.llm import LLMOpenAI
+from rag_easy.retriever.retriever import VectorRetriever
 
 logger = logging.getLogger(__name__)
 logger.setLevel(logging.INFO)
@@ -13,17 +14,12 @@ logger.addHandler(logging.StreamHandler())
 
 load_dotenv()
 
+DEFAULT_MODEL = os.getenv("DEFAULT_MODEL")
+BASE_URL = os.getenv("OLLAMA_BASE_URL")
+
 app = FastAPI()
 embedder = OllamaEmbedder()
 
-class EmbeddingRequest(BaseModel):
-    category: str
-    metadata: Union[dict, None]
-    text: str
-
-class SearchRequest(BaseModel):
-    query: str
-    limit: int = 3
 
 @app.post("/embeddings")
 async def embeddings(req: EmbeddingRequest):
@@ -34,27 +30,33 @@ async def embeddings(req: EmbeddingRequest):
 
 @app.post("/search")
 def search(sr: SearchRequest):
-    resp = vector_query(embedder.embed(sr.query), limit=3)
+    resp = vector_query(embedder.embed(sr.query), limit=2)
     return resp
 
 @app.post("/answer")
 def answer(req: SearchRequest):
-    texts = vector_query(embedder.embed(req.query), limit=req.limit)
-    info = "\n\n".join([t.body for t in texts])
-    logger.info(f"Context retrieved:\n{info}")
+    retriever = VectorRetriever()
+    rows = retriever.retrieve_similar_records(req)
+    info = "\n\n".join([t.body for t in rows])
+
+    logger.info([m.metadata for m in rows])
 
     prompt = f"""
-    Answer the following question:
+    Responda a seguinte pergunta:
+    <pergunta>
     {req.query}
+    </pergunta>
 
-    Evaluate if The following information can help you respond:
-    <context>
+    <Contexto>
     {info}
-    </context>
+    </Contexto>
     """
-    llm = LLMOllamaWithHistory(model="deepseek-r1:14b")
+    system_message="Você é um especialista na plataforma de IA e você pensa e responde em português"
+    llm = LLMOpenAI(model=DEFAULT_MODEL, system=system_message, base_url=BASE_URL)
 
+    logger.info("-"*50)
     logger.info(f"Prompt: {prompt}")
+    logger.info("-"*50)
     response = llm.chat(prompt)
     logger.info(response)
 
